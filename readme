@@ -1,1 +1,326 @@
-@
+# EMNIST Digits Classification using CNN
+
+A Convolutional Neural Network (CNN) built with **TensorFlow/Keras** to classify handwritten digits from the **EMNIST Digits** dataset. The project also includes functionality for uploading a custom handwritten digit image and generating a prediction.
+
+## 📌 Project Overview
+
+This project demonstrates an end-to-end image classification workflow:
+
+* Loading the EMNIST Digits dataset using TensorFlow Datasets
+* Preprocessing and normalizing grayscale images
+* Building a CNN using TensorFlow/Keras
+* Training the model for digit classification
+* Evaluating the model using validation data
+* Uploading custom digit images
+* Preprocessing custom images to match the model input
+* Predicting digits from user-provided images
+
+The model classifies images into **10 classes (0–9)**.
+
+---
+
+## 🧠 Model Architecture
+
+The CNN consists of two convolutional blocks followed by fully connected layers.
+
+```text
+Input Image
+28 × 28 × 1
+     │
+     ▼
+Conv2D (32 filters, 3×3) + ReLU
+     │
+     ▼
+MaxPooling2D (2×2)
+     │
+     ▼
+Conv2D (64 filters, 3×3) + ReLU
+     │
+     ▼
+MaxPooling2D (2×2)
+     │
+     ▼
+Flatten
+     │
+     ▼
+Dense (128) + ReLU
+     │
+     ▼
+Dropout (0.5)
+     │
+     ▼
+Dense (10) + Softmax
+     │
+     ▼
+Predicted Digit (0–9)
+```
+
+### Model Statistics
+
+| Property             | Value                           |
+| -------------------- | ------------------------------- |
+| Architecture         | Convolutional Neural Network    |
+| Input Shape          | 28 × 28 × 1                     |
+| Output Classes       | 10                              |
+| Total Parameters     | 225,034                         |
+| Trainable Parameters | 225,034                         |
+| Optimizer            | Adam                            |
+| Loss Function        | Sparse Categorical Crossentropy |
+| Metric               | Accuracy                        |
+| Dropout              | 0.5                             |
+| Training Epochs      | 5                               |
+| Batch Size           | 32                              |
+
+---
+
+## 📊 Dataset
+
+The project uses the **EMNIST Digits** dataset through TensorFlow Datasets.
+
+### Dataset characteristics
+
+* Handwritten digit images
+* Image resolution: **28 × 28 pixels**
+* Single grayscale channel
+* 10 classes: `0–9`
+
+The code requests up to **300,000 training examples** and up to **300,000 test examples** using:
+
+```python
+ds_train = ds_train.take(300000)
+ds_test = ds_test.take(300000)
+```
+
+If a split contains fewer examples than the requested amount, TensorFlow uses all available examples.
+
+---
+
+## ⚙️ Data Preprocessing
+
+Each image is converted to `float32` and normalized from the range:
+
+```text
+0–255
+```
+
+to:
+
+```text
+0–1
+```
+
+using:
+
+```python
+image = tf.cast(image, tf.float32) / 255.0
+```
+
+The resulting image shape is:
+
+```text
+(28, 28, 1)
+```
+
+Datasets are then batched using a batch size of 32 and prefetched using TensorFlow's automatic tuning.
+
+---
+
+## 🏋️ Training
+
+The model is compiled using:
+
+```python
+model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+```
+
+Training is performed for 5 epochs:
+
+```python
+history = model.fit(
+    ds_train,
+    epochs=5,
+    validation_data=ds_test
+)
+```
+
+The training history contains:
+
+* Training loss
+* Training accuracy
+* Validation loss
+* Validation accuracy
+
+### Training Results
+
+Run the following after training to display the actual results:
+
+```python
+print("Final Training Accuracy:", history.history["accuracy"][-1])
+print("Final Validation Accuracy:", history.history["val_accuracy"][-1])
+print("Final Training Loss:", history.history["loss"][-1])
+print("Final Validation Loss:", history.history["val_loss"][-1])
+```
+
+> **Note:** The numerical accuracy values are intentionally not hardcoded into this README because they depend on the actual training run.
+
+---
+
+## 🖼️ Custom Image Prediction
+
+The notebook also supports prediction on a custom handwritten digit.
+
+The uploaded image is:
+
+1. Loaded using PIL
+2. Converted to grayscale
+3. Resized to `28 × 28`
+4. Converted to a NumPy array
+5. Normalized to `[0,1]`
+6. Reshaped to `(1, 28, 28, 1)`
+7. Passed to the trained CNN
+
+Example:
+
+```python
+custom_prediction = model.predict(custom_image_processed)
+
+predicted_digit = custom_prediction.argmax()
+
+print(f"The model predicts the digit is: {predicted_digit}")
+print(f"Prediction probabilities: {custom_prediction}")
+```
+
+The model returns probabilities for all 10 digit classes.
+
+---
+
+## 🛠️ Technologies Used
+
+* **Python**
+* **TensorFlow**
+* **TensorFlow Datasets**
+* **Keras**
+* **NumPy**
+* **Pillow (PIL)**
+* **Matplotlib**
+* **Google Colab**
+
+---
+
+## 📁 Project Structure
+
+A suggested repository structure:
+
+```text
+EMNIST-CNN/
+│
+├── EMNIST_CNN.ipynb
+├── README.md
+├── requirements.txt
+└── images/
+    └── prediction_example.png
+```
+
+---
+
+## 🚀 Running the Project
+
+### Option 1 — Google Colab
+
+Open the notebook in Google Colab and run the cells sequentially.
+
+The first dataset-loading execution may download the EMNIST dataset.
+
+### Option 2 — Local Environment
+
+Install the required dependencies:
+
+```bash
+pip install tensorflow tensorflow-datasets numpy pillow matplotlib
+```
+
+Then open the notebook using Jupyter:
+
+```bash
+jupyter notebook
+```
+
+and run:
+
+```text
+EMNIST_CNN.ipynb
+```
+
+---
+
+## 🔍 Checking the Model Summary
+
+After creating the model, run:
+
+```python
+model.summary()
+```
+
+This displays the individual layers, output shapes, and parameter counts.
+
+You can also retrieve the total number of parameters with:
+
+```python
+print(model.count_params())
+```
+
+Expected result:
+
+```text
+225034
+```
+
+---
+
+## 📈 Possible Improvements
+
+The current implementation provides a straightforward baseline CNN. Potential improvements include:
+
+* Increasing the number of training epochs
+* Adding data augmentation
+* Experimenting with additional convolutional layers
+* Using Batch Normalization
+* Tuning learning rate and batch size
+* Adding early stopping
+* Saving the trained model
+* Generating a confusion matrix
+* Calculating precision, recall, and F1-score
+* Adding confidence visualization for predictions
+* Improving preprocessing for handwritten images with different backgrounds
+
+---
+
+## 🎯 Learning Objectives
+
+This project demonstrates practical concepts in:
+
+* Image classification
+* Convolutional Neural Networks
+* Computer vision preprocessing
+* TensorFlow/Keras model development
+* Dataset pipelines using `tf.data`
+* Model training and validation
+* Multi-class classification
+* Custom image inference
+
+---
+
+## 👨‍💻 Project
+
+Built as a practical deep-learning project for experimenting with handwritten digit recognition and CNN-based image classification.
+
+**Framework:** TensorFlow/Keras
+**Dataset:** EMNIST Digits
+**Task:** Handwritten Digit Classification
+**Classes:** 10
+**Model Parameters:** ~225K
+
